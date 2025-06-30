@@ -117,7 +117,8 @@ async def daily_scheduler():
         
         # Wenn die Zeit schon vorbei ist, für den nächsten Tag planen
         if now >= target_time:
-            target_time = target_time.replace(day=target_time.day + 1)
+            from datetime import timedelta
+            target_time = target_time + timedelta(days=1)
         
         # Berechne Wartezeit bis zur nächsten Nachricht
         wait_seconds = (target_time - now).total_seconds()
@@ -137,6 +138,26 @@ async def on_ready():
     
     # Starte den täglichen Scheduler
     asyncio.create_task(daily_scheduler())
+
+@bot.event
+async def on_message(message):
+    """Test Command für sofortiges Testen"""
+    print(f"📨 Nachricht empfangen: '{message.content}' von {message.author}")
+    
+    if message.author == bot.user:
+        print("🤖 Eigene Nachricht ignoriert")
+        return
+    
+    # Test Command: !test oder !caco
+    if message.content.lower() in ['!test', '!caco', '!testmessage']:
+        print("🎯 Test-Command erkannt! Sende Nachricht...")
+        try:
+            await send_daily_message()
+            await message.channel.send("✅ Test-Nachricht wurde gesendet!")
+            print("✅ Test erfolgreich!")
+        except Exception as e:
+            print(f"❌ Fehler beim Test: {e}")
+            await message.channel.send(f"❌ Fehler: {e}")
 
 # Flask Server für Health Check und UptimeRobot
 app = Flask(__name__)
@@ -181,6 +202,9 @@ if __name__ == "__main__":
         exit(1)
     
     try:
+        bot.run(token)
+    except Exception as e:
+        print(f"❌ Fehler beim Starten des Bots: {e}")
         bot.run(token)
     except Exception as e:
         print(f"❌ Fehler beim Starten des Bots: {e}")
