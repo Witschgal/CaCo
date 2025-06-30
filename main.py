@@ -9,7 +9,7 @@ import threading
 
 # Bot Configuration
 CHANNEL_ID = 1158472190052806721  # Deine Channel ID
-DAILY_TIME = time(14,05)  # 6:00 Uhr morgens
+DAILY_TIME = time(6, 0)  # 6:00 Uhr morgens
 TIMEZONE = pytz.timezone('Europe/Berlin')  # Deutsche Zeitzone
 
 # 50 verschiedene CaCo Nachrichten
