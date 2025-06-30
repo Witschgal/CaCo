@@ -2,7 +2,7 @@ import discord
 import asyncio
 import os
 import random
-from datetime import datetime, time
+from datetime import datetime, time, timedelta
 import pytz
 from flask import Flask, jsonify
 import threading
@@ -110,24 +110,28 @@ async def send_daily_message():
         print(f"❌ Fehler beim Senden der Nachricht: {e}")
 
 async def daily_scheduler():
-    """Täglich um 6 Uhr eine Nachricht senden"""
+    """Täglich um 6 Uhr eine Nachricht senden - KORRIGIERTE VERSION"""
     while True:
-        now = datetime.now(TIMEZONE)
-        target_time = TIMEZONE.localize(datetime.combine(now.date(), DAILY_TIME))
-        
-        # Wenn die Zeit schon vorbei ist, für den nächsten Tag planen
-        if now >= target_time:
-            from datetime import timedelta
-            target_time = target_time + timedelta(days=1)
-        
-        # Berechne Wartezeit bis zur nächsten Nachricht
-        wait_seconds = (target_time - now).total_seconds()
-        
-        print(f"⏰ Nächste CaCo-Nachricht: {target_time.strftime('%d.%m.%Y um %H:%M:%S')}")
-        print(f"⏳ Warte {wait_seconds/3600:.1f} Stunden...")
-        
-        await asyncio.sleep(wait_seconds)
-        await send_daily_message()
+        try:
+            now = datetime.now(TIMEZONE)
+            target_time = TIMEZONE.localize(datetime.combine(now.date(), DAILY_TIME))
+            
+            # Wenn die Zeit schon vorbei ist, für den nächsten Tag planen
+            if now >= target_time:
+                target_time = target_time + timedelta(days=1)
+            
+            # Berechne Wartezeit bis zur nächsten Nachricht
+            wait_seconds = (target_time - now).total_seconds()
+            
+            print(f"⏰ Nächste CaCo-Nachricht: {target_time.strftime('%d.%m.%Y um %H:%M:%S')}")
+            print(f"⏳ Warte {wait_seconds/3600:.1f} Stunden...")
+            
+            await asyncio.sleep(wait_seconds)
+            await send_daily_message()
+            
+        except Exception as e:
+            print(f"❌ Scheduler Fehler: {e}")
+            await asyncio.sleep(3600)  # Bei Fehler 1 Stunde warten
 
 @bot.event
 async def on_ready():
@@ -141,7 +145,7 @@ async def on_ready():
 
 @bot.event
 async def on_message(message):
-    """Test Command für sofortiges Testen"""
+    """Test Command für sofortiges Testen - MIT DEBUG"""
     print(f"📨 Nachricht empfangen: '{message.content}' von {message.author}")
     
     if message.author == bot.user:
@@ -202,9 +206,6 @@ if __name__ == "__main__":
         exit(1)
     
     try:
-        bot.run(token)
-    except Exception as e:
-        print(f"❌ Fehler beim Starten des Bots: {e}")
         bot.run(token)
     except Exception as e:
         print(f"❌ Fehler beim Starten des Bots: {e}")
